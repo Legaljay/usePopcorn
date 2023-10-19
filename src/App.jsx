@@ -1,5 +1,5 @@
-import { useState } from "react";
-import StarRating from './components/StarRating'
+import { useEffect, useState } from "react";
+// import StarRating from './components/StarRating'
 
 const tempMovieData = [
   {
@@ -84,7 +84,7 @@ function Search (){ //statefull component
 function SearchResult({movies}){ //stateless component
   return(
     <p className="num-results">
-      Found <strong>{movies.length}</strong> results
+      Found <strong>{movies?.length}</strong> results
     </p>
   )
 }
@@ -104,7 +104,7 @@ function Box ({children}){//stateful component
     <div className="box">
           <button
             className="btn-toggle"
-            onClick={() => setIsOpen1((open) => !open)}
+            onClick={() => setIsOpen((open) => !open)}
           >
             {isOpen ? "–" : "+"}
           </button>
@@ -218,9 +218,49 @@ function WatchedMovieList({watched}){
       </ul>
   )
 }
+
+function Loader() {
+  return (
+    <p className="loader">Loading...</p>)
+}
+
+const KEY = `f230fc15`;
+
 export default function App() {
-  const [movies, setMovies] = useState(tempMovieData);
+  const [movies, setMovies] = useState();
   const [watched, setWatched] = useState(tempWatchedData);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('')
+
+  const query ='interstellar'
+
+  useEffect(() => {
+    // fetch(`http://www.omdbapi.com/?apikey=${import.meta.env.VITE_OMDB_API_KEY}&s=interstellar`)
+    // .then((res)=> res.json())
+    // .then((data)=> setMovies(data.Search))
+
+    async function fetchMovies(){
+      try {
+        setIsLoading(true)
+        const res = await fetch(`http://www.omdbapi.com/?apikey=${import.meta.env.VITE_OMDB_API_KEY}&s=${query}`)
+
+        if(!res.ok)
+          throw new Error('Something went wrong with fetching movies');
+
+        const data = await res.json()
+        setMovies(data.Search)
+        setIsLoading(false)
+      } catch(err){
+        console.error(err.message)
+        setError(err.message)
+      }
+    }
+    fetchMovies();
+  }, [])
+
+  // fetch(`http://www.omdbapi.com/?apikey=${KEY}&s=interstellar`)
+  //   .then((res)=> res.json())
+  //   .then((data)=> console.log(data))
 
   return (
     <>
@@ -232,7 +272,9 @@ export default function App() {
       </NavBar>
       <Main>
         <Box>
-          <MovieList movies={movies}/>
+          {
+            isLoading ? <Loader /> : <MovieList movies={movies}/>
+          }
         </Box>
         <Box>
           <WatchedSummary watched={watched}/>
@@ -242,4 +284,12 @@ export default function App() {
       
     </>
   );
+}
+
+function ErrorMessage({message}){
+  return (
+    <p className="error">
+      <span></span>
+    </p>
+  )
 }
