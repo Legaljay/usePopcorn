@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import StarRating from "./components/StarRating";
 // import StarRating from './components/StarRating'
 
 const tempMovieData = [
@@ -232,7 +233,7 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('')
 
-  const query ='interstellar'
+  const query ='igjhbjk'
 
   useEffect(() => {
     // fetch(`http://www.omdbapi.com/?apikey=${import.meta.env.VITE_OMDB_API_KEY}&s=interstellar`)
@@ -248,11 +249,14 @@ export default function App() {
           throw new Error('Something went wrong with fetching movies');
 
         const data = await res.json()
+        if (data.Response === 'False') throw new Error('Movie not found')
         setMovies(data.Search)
-        setIsLoading(false)
+       
       } catch(err){
         console.error(err.message)
         setError(err.message)
+      } finally{ //this block of code will always be executed at the very end
+        setIsLoading(false)
       }
     }
     fetchMovies();
@@ -272,16 +276,23 @@ export default function App() {
       </NavBar>
       <Main>
         <Box>
+          {/* {
+            isLoading? <Loader /> : <MovieList movies={movies}/>
+          } */}
           {
-            isLoading ? <Loader /> : <MovieList movies={movies}/>
+            isLoading &&  <Loader /> 
           }
+          {
+            !isLoading && !error  && <MovieList movies={movies}/>
+          }
+          {error && <ErrorMessage message={error}/>}
         </Box>
         <Box>
           <WatchedSummary watched={watched}/>
           <WatchedMovieList  watched={watched}/>
         </Box>
       </Main>
-      
+      {/* <StarRating /> */}
     </>
   );
 }
@@ -289,7 +300,7 @@ export default function App() {
 function ErrorMessage({message}){
   return (
     <p className="error">
-      <span></span>
+      <span>@@er</span> {message}
     </p>
   )
 }
