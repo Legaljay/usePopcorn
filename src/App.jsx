@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import StarRating from "./components/StarRating";
+import {RiseLoader} from 'react-spinners'
+import './App.css'
 // import StarRating from './components/StarRating'
 
 const tempMovieData = [
@@ -52,6 +54,160 @@ const tempWatchedData = [
 const average = (arr) =>
   arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
 
+  const KEY = `f230fc15`;
+
+  export default function App() {
+    const [movies, setMovies] = useState();
+    const [watched, setWatched] = useState(tempWatchedData);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState('')
+    const [query, setQuery] = useState("");
+    const [selectedId, setSelectedId] = useState(null)
+  
+    const tempQuery ='interstellar'
+
+    function handleSelectMovie(id){
+      setSelectedId(previd => id === previd? null : id)
+    }
+
+    function handleCloseMovie(){
+      setSelectedId(null)
+    }
+  
+    useEffect(() => {
+      // fetch(`http://www.omdbapi.com/?apikey=${import.meta.env.VITE_OMDB_API_KEY}&s=interstellar`)
+      // .then((res)=> res.json())
+      // .then((data)=> setMovies(data.Search))
+  
+      async function fetchMovies(){
+        try {
+          setIsLoading(true)
+          setError('')
+          const res = await fetch(`http://www.omdbapi.com/?apikey=${import.meta.env.VITE_OMDB_API_KEY}&s=${query ? query : tempQuery}`)
+  
+          if(!res.ok)
+            throw new Error('Something went wrong with fetching movies');
+  
+          const data = await res.json()
+          if (data.Response === 'False') throw new Error('Movie not found')
+          setMovies(data.Search)
+         
+        } catch(err){
+          console.error(err.message)
+          setError(err.message)
+        } finally{ //this block of code will always be executed at the very end
+          setIsLoading(false)
+        }
+  
+        if(query.length < 3){ 
+          // setMovies([]);
+          setError('')
+          return
+        }
+      }
+      fetchMovies();
+    }, [query])
+  
+    // fetch(`http://www.omdbapi.com/?apikey=${KEY}&s=interstellar`)
+    //   .then((res)=> res.json())
+    //   .then((data)=> console.log(data))
+  
+    return (
+      <>
+        
+        <NavBar>
+          <Logo />
+          <Search query={query} setQuery={setQuery}/>
+          <SearchResult movies={movies}/>
+        </NavBar>
+        <Main>
+          <Box>
+            {/* {
+              isLoading? <Loader /> : <MovieList movies={movies}/>
+            } */}
+            {
+              isLoading &&  <Loader /> 
+            }
+            {
+              !isLoading && !error  && 
+              <MovieList 
+                movies={movies} 
+                onSelectMovie={handleSelectMovie}
+              />
+            }
+            {error && <ErrorMessage message={error}/>}
+          </Box>
+          <Box>
+            {
+              selectedId ? (<MovieDetails selectedId={selectedId} onCloseMovie={handleCloseMovie} />) : (
+                <>
+                  <WatchedSummary watched={watched}/>
+                  <WatchedMovieList  watched={watched}/>
+                
+                </>
+            )}
+          </Box>
+        </Main>
+        {/* <StarRating /> */}
+      </>
+    );
+  }
+
+function MovieDetails({selectedId, onCloseMovie}){
+  const [movie,setMovie] = useState({})
+  const [isLoading, setIsLoading] = useState(false)
+  const {
+    Title: title, 
+    Year: year, 
+    Poster: poster, 
+    Runtime: runtime, 
+    imdbRating, 
+    Plot: plot, 
+    Released: released, 
+    Actors: actors, 
+    Director: director, 
+    Genre: genre 
+  } = movie;
+
+  useEffect(()=>{
+    async function getMovieDetails(){
+      setIsLoading(true)
+      const res = await fetch(`http://www.omdbapi.com/?apikey=${import.meta.env.VITE_OMDB_API_KEY}&i=${selectedId}`)
+      const data = await res.json();
+      setIsLoading(false)
+      setMovie(data)
+    }
+    getMovieDetails();
+  },[selectedId])
+  return (
+    <div className="details">
+      {isLoading? <Loader /> : (
+      <>
+        <header>
+          <button className="btn-back" onClick={onCloseMovie}>&larr;</button>
+          <img src={poster} alt={title}/>
+          <div className="details-overview">
+            <h2>{title}</h2>
+            <p>{released} &bull; {runtime}</p>
+            <p>{genre}</p>
+            <p><span>&star;</span>{imdbRating} IMDb rating</p>
+          </div>
+        </header>
+        <section>
+          <div className="rating">
+            <StarRating maxRating={10} size={36}/>
+          </div>
+          <p><em>{plot}</em></p>
+          <p>Starring {actors}</p>
+          <p>Directed by {director}</p>
+        </section>
+        {/* {selectedId} */}
+      </>
+      )}
+    </div>
+  )
+}
+
 function NavBar ({children}){ //structural component
   
   return (
@@ -69,8 +225,8 @@ function Logo(){ //stateless component
   )
 }
 
-function Search (){ //statefull component
-  const [query, setQuery] = useState("");
+function Search ({query, setQuery}){ //statefull component
+
   return(
     <input
       className="search"
@@ -102,33 +258,33 @@ function Main ({children}) { //structural component
 function Box ({children}){//stateful component
   const [isOpen, setIsOpen] = useState(true);
   return(
-    <div className="box">
-          <button
-            className="btn-toggle"
-            onClick={() => setIsOpen((open) => !open)}
-          >
-            {isOpen ? "–" : "+"}
-          </button>
-          {isOpen && children}
-        </div>
+      <div className="box">
+        <button
+          className="btn-toggle"
+          onClick={() => setIsOpen((open) => !open)}
+        >
+          {isOpen ? "–" : "+"}
+        </button>
+        {isOpen && children}
+      </div>
   )
 }
 
-function MovieList({movies}) {
+function MovieList({movies, onSelectMovie}) {
   
   return(
     <ul className="list">
       {movies?.map((movie) => (
-        <Movie key={movie.imdbID} movie={movie}/>
+        <Movie key={movie.imdbID} movie={movie} onSelectMovie={onSelectMovie}/>
       ))}
     </ul>
   )
 }
 
-function Movie({movie}){
+function Movie({movie, onSelectMovie}){
 
   return(
-    <li>
+    <li onClick={() => onSelectMovie(movie.imdbID)}>
       <img src={movie.Poster} alt={`${movie.Title} poster`} />
       <h3>{movie.Title}</h3>
       <div>
@@ -222,80 +378,13 @@ function WatchedMovieList({watched}){
 
 function Loader() {
   return (
-    <p className="loader">Loading...</p>)
+    // <p className="loader">Loading...</p>
+    <div className="w-full h-screen grid place-items-center">
+      <RiseLoader color="#6741d9" />
+    </div>
+    )
 }
 
-const KEY = `f230fc15`;
-
-export default function App() {
-  const [movies, setMovies] = useState();
-  const [watched, setWatched] = useState(tempWatchedData);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('')
-
-  const query ='igjhbjk'
-
-  useEffect(() => {
-    // fetch(`http://www.omdbapi.com/?apikey=${import.meta.env.VITE_OMDB_API_KEY}&s=interstellar`)
-    // .then((res)=> res.json())
-    // .then((data)=> setMovies(data.Search))
-
-    async function fetchMovies(){
-      try {
-        setIsLoading(true)
-        const res = await fetch(`http://www.omdbapi.com/?apikey=${import.meta.env.VITE_OMDB_API_KEY}&s=${query}`)
-
-        if(!res.ok)
-          throw new Error('Something went wrong with fetching movies');
-
-        const data = await res.json()
-        if (data.Response === 'False') throw new Error('Movie not found')
-        setMovies(data.Search)
-       
-      } catch(err){
-        console.error(err.message)
-        setError(err.message)
-      } finally{ //this block of code will always be executed at the very end
-        setIsLoading(false)
-      }
-    }
-    fetchMovies();
-  }, [])
-
-  // fetch(`http://www.omdbapi.com/?apikey=${KEY}&s=interstellar`)
-  //   .then((res)=> res.json())
-  //   .then((data)=> console.log(data))
-
-  return (
-    <>
-      
-      <NavBar>
-        <Logo />
-        <Search />
-        <SearchResult movies={movies}/>
-      </NavBar>
-      <Main>
-        <Box>
-          {/* {
-            isLoading? <Loader /> : <MovieList movies={movies}/>
-          } */}
-          {
-            isLoading &&  <Loader /> 
-          }
-          {
-            !isLoading && !error  && <MovieList movies={movies}/>
-          }
-          {error && <ErrorMessage message={error}/>}
-        </Box>
-        <Box>
-          <WatchedSummary watched={watched}/>
-          <WatchedMovieList  watched={watched}/>
-        </Box>
-      </Main>
-      {/* <StarRating /> */}
-    </>
-  );
-}
 
 function ErrorMessage({message}){
   return (
