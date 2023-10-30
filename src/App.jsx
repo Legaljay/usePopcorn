@@ -71,7 +71,7 @@ const average = (arr) =>
     //   const storedValue = localStorage.getItem('watched');
     //   return JSON.parse(storedValue);
     // });
-    const [watched, setWatched] = useLocalStorageState([], watched)
+    const [watched, setWatched] = useLocalStorageState([], 'watched')
     const {movies,isLoading, error} = useMovies(query, handleCloseMovie)
   
     const tempQuery ='interstellar'
