@@ -3,6 +3,7 @@ import StarRating from "./components/StarRating";
 import {RiseLoader} from 'react-spinners'
 import './App.css'
 import { useMovies } from "./hooks/useMovies";
+import { useLocalStorageState } from "./hooks/useLocalStorage";
 // import StarRating from './components/StarRating'
 
 const tempMovieData = [
@@ -65,12 +66,13 @@ const average = (arr) =>
     
     const [query, setQuery] = useState("");
     const [selectedId, setSelectedId] = useState(null)
-    const [watched, setWatched] = useState(
-      function() {
-      const storedValue = localStorage.getItem('watched');
-      return JSON.parse(storedValue);
-    });
-    const {movies,isLoading, error} = useMovies(query)
+    // const [watched, setWatched] = useState(
+    //   function() {
+    //   const storedValue = localStorage.getItem('watched');
+    //   return JSON.parse(storedValue);
+    // });
+    const [watched, setWatched] = useLocalStorageState([], watched)
+    const {movies,isLoading, error} = useMovies(query, handleCloseMovie)
   
     const tempQuery ='interstellar'
 
@@ -91,9 +93,9 @@ const average = (arr) =>
       setWatched((watched) => watched.filter((movie) => movie.imdbID !== id))
     }
 
-    useEffect(() => {
-      localStorage.setItem('watched', JSON.stringify(watched)) //notice here we did not need to spread the watched state because the useeffect is dependeent on watched itself, so for every change in the watched state it is being updated 
-    },[watched])
+    // useEffect(() => {
+    //   localStorage.setItem('watched', JSON.stringify(watched)) //notice here we did not need to spread the watched state because the useeffect is dependeent on watched itself, so for every change in the watched state it is being updated 
+    // },[watched])
   
     // useEffect(() => {
     //   // fetch(`http://www.omdbapi.com/?apikey=${import.meta.env.VITE_OMDB_API_KEY}&s=interstellar`)
