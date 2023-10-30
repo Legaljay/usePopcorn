@@ -71,10 +71,11 @@ const average = (arr) =>
     //   const storedValue = localStorage.getItem('watched');
     //   return JSON.parse(storedValue);
     // });
-    const [watched, setWatched] = useLocalStorageState([], 'watched')
-    const {movies,isLoading, error} = useMovies(query, handleCloseMovie)
-  
     const tempQuery ='interstellar'
+    const [watched, setWatched] = useLocalStorageState([], 'watched')
+    const {movies,isLoading, error} = useMovies(query, handleCloseMovie, tempQuery)
+  
+  
 
     function handleSelectMovie(id){
       setSelectedId(previd => id === previd? null : id)
@@ -307,7 +308,7 @@ function Search ({query, setQuery}){ //statefull component
 // }, [])
 const inputEl = useRef(null) //we usually pass initial value as null if we are trying to use DOM 
 useEffect(() => { //we need to use an effect in order to use a ref that contains a DOM element liket this one  
-  console.log(inputEl.current)
+  // console.log(inputEl.current)
   function callback(e){
     if (document.activeElement === inputEl.current){//checks for the current active element that is being focused
       return;

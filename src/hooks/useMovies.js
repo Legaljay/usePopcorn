@@ -1,7 +1,7 @@
 import { useState,useEffect } from "react"
 
 const KEY = `f230fc15`;
-export function useMovies(query, callback){
+export function useMovies(query, callback, tempQuery){
     const [movies, setMovies] = useState()
     const [isLoading, setIsLoading] = useState()
     const [error, setError] = useState()
