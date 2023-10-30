@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import StarRating from "./components/StarRating";
 import {RiseLoader} from 'react-spinners'
 import './App.css'
+import { useMovies } from "./hooks/useMovies";
 // import StarRating from './components/StarRating'
 
 const tempMovieData = [
@@ -57,10 +58,11 @@ const average = (arr) =>
   const KEY = `f230fc15`;
 
   export default function App() {
-    const [movies, setMovies] = useState();
-    // const [watched, setWatched] = useState(tempWatchedData);
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState('')
+    // const [movies, setMovies] = useState();
+    // // const [watched, setWatched] = useState(tempWatchedData);
+    // const [isLoading, setIsLoading] = useState(false);
+    // const [error, setError] = useState('')
+    
     const [query, setQuery] = useState("");
     const [selectedId, setSelectedId] = useState(null)
     const [watched, setWatched] = useState(
@@ -68,6 +70,7 @@ const average = (arr) =>
       const storedValue = localStorage.getItem('watched');
       return JSON.parse(storedValue);
     });
+    const {movies,isLoading, error} = useMovies(query)
   
     const tempQuery ='interstellar'
 
@@ -92,39 +95,39 @@ const average = (arr) =>
       localStorage.setItem('watched', JSON.stringify(watched)) //notice here we did not need to spread the watched state because the useeffect is dependeent on watched itself, so for every change in the watched state it is being updated 
     },[watched])
   
-    useEffect(() => {
-      // fetch(`http://www.omdbapi.com/?apikey=${import.meta.env.VITE_OMDB_API_KEY}&s=interstellar`)
-      // .then((res)=> res.json())
-      // .then((data)=> setMovies(data.Search))
+    // useEffect(() => {
+    //   // fetch(`http://www.omdbapi.com/?apikey=${import.meta.env.VITE_OMDB_API_KEY}&s=interstellar`)
+    //   // .then((res)=> res.json())
+    //   // .then((data)=> setMovies(data.Search))
   
-      async function fetchMovies(){
-        try {
-          setIsLoading(true)
-          setError('')
-          const res = await fetch(`http://www.omdbapi.com/?apikey=${import.meta.env.VITE_OMDB_API_KEY}&s=${query ? query : tempQuery}`)
+    //   async function fetchMovies(){
+    //     try {
+    //       setIsLoading(true)
+    //       setError('')
+    //       const res = await fetch(`http://www.omdbapi.com/?apikey=${import.meta.env.VITE_OMDB_API_KEY}&s=${query ? query : tempQuery}`)
   
-          if(!res.ok)
-            throw new Error('Something went wrong with fetching movies');
+    //       if(!res.ok)
+    //         throw new Error('Something went wrong with fetching movies');
   
-          const data = await res.json()
-          if (data.Response === 'False') throw new Error('Movie not found')
-          setMovies(data.Search)
+    //       const data = await res.json()
+    //       if (data.Response === 'False') throw new Error('Movie not found')
+    //       setMovies(data.Search)
          
-        } catch(err){
-          console.error(err.message)
-          setError(err.message)
-        } finally{ //this block of code will always be executed at the very end
-          setIsLoading(false)
-        }
+    //     } catch(err){
+    //       console.error(err.message)
+    //       setError(err.message)
+    //     } finally{ //this block of code will always be executed at the very end
+    //       setIsLoading(false)
+    //     }
   
-        if(query.length < 3){ 
-          // setMovies([]);
-          setError('')
-          return
-        }
-      }
-      fetchMovies();
-    }, [query])
+    //     if(query.length < 3){ 
+    //       // setMovies([]);
+    //       setError('')
+    //       return
+    //     }
+    //   }
+    //   fetchMovies();
+    // }, [query])
   
     // fetch(`http://www.omdbapi.com/?apikey=${KEY}&s=interstellar`)
     //   .then((res)=> res.json())
