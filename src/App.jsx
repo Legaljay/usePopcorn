@@ -147,7 +147,7 @@ const average = (arr) =>
           <SearchResult movies={movies}/>
         </NavBar>
         <Main>
-          <GeoLocation/>
+          {/* <GeoLocation/> */}
           <Box>
             {/* {
               isLoading? <Loader /> : <MovieList movies={movies}/>
