@@ -4,6 +4,8 @@ import {RiseLoader} from 'react-spinners'
 import './App.css'
 import { useMovies } from "./hooks/useMovies";
 import { useLocalStorageState } from "./hooks/useLocalStorage";
+import { useKey } from "./hooks/useKey";
+import GeoLocation from "./components/GeoLocation";
 // import StarRating from './components/StarRating'
 
 const tempMovieData = [
@@ -145,6 +147,7 @@ const average = (arr) =>
           <SearchResult movies={movies}/>
         </NavBar>
         <Main>
+          <GeoLocation/>
           <Box>
             {/* {
               isLoading? <Loader /> : <MovieList movies={movies}/>
@@ -237,6 +240,9 @@ function MovieDetails({selectedId, onCloseMovie, onAddWatched, watched}){
     onAddWatched(newWatchedMovie);
     onCloseMovie();
   }
+
+  useKey('Escape', onCloseMovie);
+
   return (
     <div className="details">
       {isLoading? <Loader /> : (
@@ -307,24 +313,33 @@ function Search ({query, setQuery}){ //statefull component
 //   el.focus()
 // }, [])
 const inputEl = useRef(null) //we usually pass initial value as null if we are trying to use DOM 
-useEffect(() => { //we need to use an effect in order to use a ref that contains a DOM element liket this one  
-  // console.log(inputEl.current)
-  function callback(e){
+// useEffect(() => { //we need to use an effect in order to use a ref that contains a DOM element liket this one  
+//   // console.log(inputEl.current)
+//   function callback(e){
+//     if (document.activeElement === inputEl.current){//checks for the current active element that is being focused
+//       return;
+//     }
+//     if (e.code === 'Enter'){
+//       inputEl.current.focus()
+//       setQuery('')
+//     }
+    
+//   }
+//   document.addEventListener('keydown', callback)
+//   return () => {
+//     document.addEventListener('keydown', callback)
+//   }
+  
+// },[setQuery])
+
+  useKey('Enter', () => {
     if (document.activeElement === inputEl.current){//checks for the current active element that is being focused
       return;
     }
-    if (e.code === 'Enter'){
-      inputEl.current.focus()
-      setQuery('')
-    }
-    
-  }
-  document.addEventListener('keydown', callback)
-  return () => {
-    document.addEventListener('keydown', callback)
-  }
-  
-},[setQuery])
+    inputEl.current.focus()
+    setQuery('')
+  })
+
   return(
     <input
       className="search"
